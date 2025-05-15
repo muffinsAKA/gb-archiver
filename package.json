@@ -1,0 +1,21 @@
+{
+  "name": "gb-archiver",
+  "version": "1.0.0",
+  "description": "nodejs archiver for a website about video games",
+  "main": "app.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "giantbomb"
+  ],
+  "author": "Giant Bomb Preservation Society",
+  "license": "ISC",
+  "dependencies": {
+    "cli-progress": "^3.12.0",
+    "csv-writer": "^1.6.0",
+    "dotenv": "^16.5.0",
+    "ora": "^8.2.0"
+  }
+}
