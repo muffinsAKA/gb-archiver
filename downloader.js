@@ -3,6 +3,8 @@
 import { createWriteStream } from "fs";
 import * as settings from "./config.js";
 
+let apiShowRetries = 3;
+
 export const getApi = async (apiDate) => {
   const apiUrl =
     `https://www.giantbomb.com/api/videos/?api_key=${settings.cfg.apiKey}&format=json` +
@@ -13,6 +15,27 @@ export const getApi = async (apiDate) => {
   const res = await fetch(apiUrl);
   const data = await res.json();
   return data;
+};
+
+export const getShowList = async () => {
+  const url = `https://www.giantbomb.com/api/video_shows/?api_key=${settings.cfg.apiKey}&format=json`;
+  const delay = 5000;
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      console.log("[GET]", url);
+      const response = await fetch(url);
+      const data = await response.json();
+      console.log("Fetched shows:", data.results); // <--- this should print
+      return data.results;
+    } catch (err) {
+      console.error(`Attempt ${attempt} failed:`, err);
+      if (attempt < 3) await new Promise(r => setTimeout(r, delay));
+    }
+  }
+
+  console.warn("All attempts failed.");
+  return [];
 };
 
 export const downloadVideo = async (video, multiBar) => {

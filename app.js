@@ -6,9 +6,10 @@ import * as downloader from "./downloader.js";
 import * as settings from "./config.js";
 import { VideoItem } from "./config.js";
 import { writeCsv } from "./csvWriter.js";
+import inquirer from "inquirer";
 
 const spinner = ora("Getting latest API data").start();
-
+spinner.stop();
 const multiBar = new cliProgress.MultiBar(
   {
     clearOnComplete: false,
@@ -53,7 +54,7 @@ const startSession = async () => {
         newVideos.map((video) => downloader.downloadVideo(video, multiBar))
       );
 
-      multiBar.stop(); 
+      multiBar.stop();
 
       results.forEach((result, idx) => {
         const video = newVideos[idx];
@@ -85,4 +86,33 @@ async function sortNewVideos(results) {
   return newVideos;
 }
 
-startSession();
+const init = async () => {
+  const keyPrompt = await inquirer.prompt([
+    {
+      type: "input",
+      name: "apiKey",
+      message: "Input your Giant Bomb API key (https://giantbomb.com/api/)",
+      default: null,
+    },
+  ]);
+  settings.cfg.apiKey = keyPrompt.apiKey.trim().replace(/\s/g, "");
+  // spinner.start("Downloading show list...");
+  // const shows = await downloader.getShowList();
+  // const showChoices = shows.map((show) => ({
+  //   name: `${show.title})`,
+  //   value: show.id,
+  // }));
+  // spinner.succeed();
+  const answers = await inquirer.prompt([
+    {
+      type: "input",
+      name: "downloadDirectory",
+      message: "Where should videos be saved?",
+      default: "./downloads",
+    },
+  ]);
+
+  settings.cfg.downloadDirectory = answers.downloadDirectory.trim().replace(/\s/g, "");
+};
+
+init();

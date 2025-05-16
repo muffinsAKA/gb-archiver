@@ -1,11 +1,13 @@
 import dotenv from "dotenv";
 import path from "path";
+import fs from 'fs'
 dotenv.config();
 
 export const cfg = {
+  watchedShows: [],
   lastApiCheck: null,
-  downloadDirectory: path.join(process.cwd(), "daily-files"),
-  apiKey: process.env.APIKEY,
+  downloadDirectory: null,
+  apiKey: null,
   retries: [],
   discord: {
     enabled: true,
@@ -101,4 +103,8 @@ export class VideoItem {
       "external-identifier": `gb-guid:${this.guid}`,
     };
   }
+}
+
+function saveConfig() {
+    
 }
