@@ -9,6 +9,8 @@ const getHeaders = () => ({
 });
 
 export const disc = async (message) => {
+  if (!settings.cfg.adminMode) return
+
   try {
     const res = await fetch(`https://discord.com/api/v9/channels/${testChannel}/messages`, {
       method: "POST",

@@ -8,13 +8,12 @@ export const cfg = {
   retries: [],
   adminMode: false,
   discord: {
-    enabled: false,
     token: null,
     modChannel: null,
     channel: null,
     headersDisc: () => {
       return {
-        Authorization: `Bot ${cfg.discord.token}`,
+        "Authorization": `Bot ${cfg.discord.token}`,
         "User-Agent": "DiscordBot",
       };
     },

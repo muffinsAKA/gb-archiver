@@ -16,8 +16,6 @@
     "cli-progress": "^3.12.0",
     "csv-writer": "^1.6.0",
     "inquirer": "^12.6.1",
-    "internetarchive-sdk-js": "^1.0.38",
-    "node-fetch": "^3.3.2",
     "ora": "^8.2.0"
   }
 }

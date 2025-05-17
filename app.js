@@ -6,6 +6,7 @@ import * as downloader from "./downloader.js";
 import * as settings from "./config.js";
 import { VideoItem } from "./config.js";
 import { writeCsv } from "./csvWriter.js";
+import { disc } from './discord.js'
 import * as util from "./util.js";
 import inquirer from "inquirer";
 
@@ -20,15 +21,8 @@ const multiBar = new cliProgress.MultiBar(
   cliProgress.Presets.shades_classic
 );
 
-const getDate = () => {
-  const date = new Date();
-  const formattedDate = date.toISOString().slice(0, 10);
-  // const formattedDate = "2025-05-12";
-  return formattedDate;
-};
-
 const startSession = async () => {
-  const date = getDate();
+  const date = util.getApiDate();
   spinner.info(`Getting API for ${date}`);
   await disc(`Getting API for ${date}`);
   let apiData;
@@ -36,10 +30,10 @@ const startSession = async () => {
   try {
     apiData = await downloader.getApi(date);
     spinner.succeed();
-    await disc("✅ API download succesful ");
+    await disc("✅ API download succesful");
   } catch (error) {
     spinner.fail("API download failed");
-    await disc("API download failed, adding to retries");
+    await disc("API download failed, will retry later. ");
     console.log(error);
     settings.cfg.retries.push({ date: date, retries: 3 });
   }
@@ -54,6 +48,7 @@ const startSession = async () => {
       if (settings.cfg.adminMode) {
         spinner.start("Creating CSV");
         await writeCsv(newVideos, date);
+        await disc("CSV Data created:")
         spinner.succeed();
       }
       spinner.info("Downloading videos...");
@@ -111,7 +106,7 @@ const init = async () => {
     {
       type: "confirm",
       name: "archive",
-      message: "GB Preservation Mode? (Admins only)",
+      message: "Archive.org Mode? (Admins only)",
       default: "false",
     },
   ]);
@@ -126,7 +121,7 @@ const init = async () => {
           if (util.trimInput(input) != "") {
             return true;
           } else {
-            return "Input required";
+            return "Discord token required";
           }
         },
       },
@@ -138,7 +133,7 @@ const init = async () => {
           if (util.trimInput(input) != "") {
             return true;
           } else {
-            return "Input required";
+            return "Channel ID required";
           }
         },
       },
@@ -150,13 +145,12 @@ const init = async () => {
           if (util.trimInput(input) != "") {
             return true;
           } else {
-            return "Input required";
+            return "Mod Channel ID required";
           }
         },
       },
     ]);
     settings.cfg.adminMode = true;
-    settings.cfg.discord.enabled = true;
     settings.cfg.discord.token = discordInfo.token;
     settings.cfg.discord.channel = discordInfo.channelId;
     settings.cfg.discord.modChannel = discordInfo.modChannelId;
