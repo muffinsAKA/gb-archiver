@@ -6,6 +6,7 @@ export const cfg = {
   downloadDirectory: null,
   apiKey: null,
   retries: [],
+  adminMode: false,
   discord: {
     enabled: false,
     token: null,

@@ -1,6 +1,6 @@
 import ora from "ora";
 import fs from "fs";
-import path from 'path'
+import path from "path";
 import cliProgress from "cli-progress";
 import * as downloader from "./downloader.js";
 import * as settings from "./config.js";
@@ -22,20 +22,24 @@ const multiBar = new cliProgress.MultiBar(
 
 const getDate = () => {
   const date = new Date();
-  //   const formattedDate = date.toISOString().slice(0, 10);
-  const formattedDate = "2025-05-12";
+  const formattedDate = date.toISOString().slice(0, 10);
+  // const formattedDate = "2025-05-12";
   return formattedDate;
 };
 
 const startSession = async () => {
   const date = getDate();
   spinner.info(`Getting API for ${date}`);
+  await disc(`Getting API for ${date}`);
   let apiData;
 
   try {
     apiData = await downloader.getApi(date);
     spinner.succeed();
+    await disc("✅ API download succesful ");
   } catch (error) {
+    spinner.fail("API download failed");
+    await disc("API download failed, adding to retries");
     console.log(error);
     settings.cfg.retries.push({ date: date, retries: 3 });
   }
@@ -43,13 +47,17 @@ const startSession = async () => {
   if (apiData?.results?.length) {
     try {
       spinner.info(`${apiData.results.length} shows found`);
+      await disc(`${apiData.results.length} shows found`);
       spinner.start("Sorting videos");
       const newVideos = await sortNewVideos(apiData.results);
       spinner.succeed();
-      spinner.start("Creating CSV");
-      await writeCsv(newVideos, date);
-      spinner.succeed();
+      if (settings.cfg.adminMode) {
+        spinner.start("Creating CSV");
+        await writeCsv(newVideos, date);
+        spinner.succeed();
+      }
       spinner.info("Downloading videos...");
+      await disc(`Downloading ${apiData.results.length} new videos `);
       spinner.stop();
       const results = await Promise.allSettled(
         newVideos.map((video) => downloader.downloadVideo(video, multiBar))
@@ -57,22 +65,33 @@ const startSession = async () => {
 
       multiBar.stop();
 
-      results.forEach((result, idx) => {
+      for (const [idx, result] of results.entries()) {
         const video = newVideos[idx];
+
         if (result.status === "fulfilled") {
           console.log(`✅ Downloaded: ${video.filename}`);
+          await disc(`✅ Downloaded: ${video.filename}`);
         } else {
           console.error(`❌ Failed: ${video.filename}`, result.reason);
+          await disc(`❌ Failed: ${video.filename}`, result.reason);
         }
-      });
+      }
 
       spinner.succeed("All downloads finished");
+      await disc(`✅ All downloads finished`)
+
+      if (settings.cfg.adminMode) {
+        upload('./upload.csv')
+      }
+
     } catch (error) {
       console.error(error);
       spinner.fail("Unexpected error during session");
+      await disc(`Unexpected error during session: ${error}`)
     }
   } else {
     spinner.info("No shows found for given date");
+    await disc("No shows found. Skipping.")
   }
 };
 
@@ -136,6 +155,7 @@ const init = async () => {
         },
       },
     ]);
+    settings.cfg.adminMode = true;
     settings.cfg.discord.enabled = true;
     settings.cfg.discord.token = discordInfo.token;
     settings.cfg.discord.channel = discordInfo.channelId;
@@ -203,4 +223,4 @@ async function startup() {
   }
 }
 
-startup()
+startup();
