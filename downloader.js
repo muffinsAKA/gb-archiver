@@ -2,6 +2,8 @@
 
 import { createWriteStream } from "fs";
 import * as settings from "./config.js";
+import fs from "fs";
+import path from "path";
 
 let apiShowRetries = 3;
 
@@ -17,20 +19,28 @@ export const getApi = async (apiDate) => {
   return data;
 };
 
+export const testApiKey = async (key) => {
+  const url = `https://www.giantbomb.com/api/videos/?api_key=${key}&format=json&limit=1`;
+
+  try {
+    const response = await fetch(url);
+    const data = await response.json();
+    return data;
+  } catch (e) {
+    console.error(e);
+  }
+};
 export const getShowList = async () => {
   const url = `https://www.giantbomb.com/api/video_shows/?api_key=${settings.cfg.apiKey}&format=json`;
   const delay = 5000;
-
   for (let attempt = 1; attempt <= 3; attempt++) {
     try {
-      console.log("[GET]", url);
       const response = await fetch(url);
       const data = await response.json();
-      console.log("Fetched shows:", data.results); // <--- this should print
       return data.results;
     } catch (err) {
       console.error(`Attempt ${attempt} failed:`, err);
-      if (attempt < 3) await new Promise(r => setTimeout(r, delay));
+      if (attempt < 3) await new Promise((r) => setTimeout(r, delay));
     }
   }
 
@@ -43,6 +53,11 @@ export const downloadVideo = async (video, multiBar) => {
     throw new Error(`Missing download URL or filepath for ${video.name}`);
   }
 
+  const dir = path.dirname(video.filepath);
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  
   const response = await fetch(video.downloadUrl);
   if (!response.ok) {
     throw new Error(`Failed to download ${video.name}: ${response.statusText}`);

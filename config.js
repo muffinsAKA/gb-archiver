@@ -1,22 +1,21 @@
-import dotenv from "dotenv";
 import path from "path";
-import fs from 'fs'
-dotenv.config();
 
 export const cfg = {
-  watchedShows: [],
+  workingDir: import.meta.dirname,
   lastApiCheck: null,
   downloadDirectory: null,
   apiKey: null,
   retries: [],
   discord: {
-    enabled: true,
-    token: process.env.TOKEN,
-    modChannel: process.env.MODCHANNEL,
-    channel: process.env.CHANNEL,
-    headersDisc: {
-      Authorization: `Bot ${process.env.TOKEN}`,
-      "User-Agent": "DiscordBot",
+    enabled: false,
+    token: null,
+    modChannel: null,
+    channel: null,
+    headersDisc: () => {
+      return {
+        Authorization: `Bot ${cfg.discord.token}`,
+        "User-Agent": "DiscordBot",
+      };
     },
   },
 };
@@ -71,7 +70,11 @@ export class VideoItem {
     base = base.replace(/:/g, "").replace(/\s+/g, "_").replace(/\//g, "-");
 
     this.filename = base + suffix;
-    this.filepath = path.join(cfg.downloadDirectory || "", this.filename);
+    this.filepath = path.join(
+      cfg.downloadDirectory,
+      this.videoShow || "",
+      this.filename
+    );
   }
 
   async getFilesize() {
@@ -105,6 +108,22 @@ export class VideoItem {
   }
 }
 
-function saveConfig() {
-    
+export function saveConfig() {
+  try {
+    const savePath = path.join(cfg.workingDir, "config.json");
+    const saveData = JSON.stringify(cfg);
+    fs.writeFileSync(savePath, saveData);
+  } catch (err) {
+    console.error("Failed to save config:", err);
+  }
+}
+export function loadConfig() {
+  try {
+    const loadingPath = path.join(cfg.workingDir, "config.json");
+    const loadJson = fs.readFileSync(loadingPath);
+    const config = JSON.parse(loadJson);
+    Object.assign(cfg, config);
+  } catch (e) {
+    console.error(`Error loading config:`, e);
+  }
 }

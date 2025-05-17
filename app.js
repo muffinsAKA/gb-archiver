@@ -1,11 +1,12 @@
-import dotenv from "dotenv";
-dotenv.config();
 import ora from "ora";
+import fs from "fs";
+import path from 'path'
 import cliProgress from "cli-progress";
 import * as downloader from "./downloader.js";
 import * as settings from "./config.js";
 import { VideoItem } from "./config.js";
 import { writeCsv } from "./csvWriter.js";
+import * as util from "./util.js";
 import inquirer from "inquirer";
 
 const spinner = ora("Getting latest API data").start();
@@ -87,22 +88,83 @@ async function sortNewVideos(results) {
 }
 
 const init = async () => {
+  const mode = await inquirer.prompt([
+    {
+      type: "confirm",
+      name: "archive",
+      message: "GB Preservation Mode? (Admins only)",
+      default: "false",
+    },
+  ]);
+
+  if (mode.archive) {
+    const discordInfo = await inquirer.prompt([
+      {
+        type: "input",
+        name: "token",
+        message: "Discord token:",
+        validate: (input) => {
+          if (util.trimInput(input) != "") {
+            return true;
+          } else {
+            return "Input required";
+          }
+        },
+      },
+      {
+        type: "input",
+        name: "channelId",
+        message: "Discord channel id:",
+        validate: (input) => {
+          if (util.trimInput(input) != "") {
+            return true;
+          } else {
+            return "Input required";
+          }
+        },
+      },
+      {
+        type: "input",
+        name: "modChannelId",
+        message: "Mod Channel ID",
+        validate: (input) => {
+          if (util.trimInput(input) != "") {
+            return true;
+          } else {
+            return "Input required";
+          }
+        },
+      },
+    ]);
+    settings.cfg.discord.enabled = true;
+    settings.cfg.discord.token = discordInfo.token;
+    settings.cfg.discord.channel = discordInfo.channelId;
+    settings.cfg.discord.modChannel = discordInfo.modChannelId;
+  }
+
   const keyPrompt = await inquirer.prompt([
     {
       type: "input",
       name: "apiKey",
       message: "Input your Giant Bomb API key (https://giantbomb.com/api/)",
       default: null,
+      validate: async (input) => {
+        if (!input || typeof input !== "string" || input.trim() === "") {
+          return "API key is invalid.";
+        }
+        const cleanInput = util.trimInput(input);
+        const testResult = await downloader.testApiKey(cleanInput);
+        if (testResult.status_code === 1) {
+          return true;
+        } else {
+          return "API key test failed.";
+        }
+      },
     },
   ]);
-  settings.cfg.apiKey = keyPrompt.apiKey.trim().replace(/\s/g, "");
-  // spinner.start("Downloading show list...");
-  // const shows = await downloader.getShowList();
-  // const showChoices = shows.map((show) => ({
-  //   name: `${show.title})`,
-  //   value: show.id,
-  // }));
-  // spinner.succeed();
+
+  settings.cfg.apiKey = util.trimInput(keyPrompt.apiKey);
+
   const answers = await inquirer.prompt([
     {
       type: "input",
@@ -110,9 +172,35 @@ const init = async () => {
       message: "Where should videos be saved?",
       default: "./downloads",
     },
+    {
+      type: "input",
+      name: "runTime",
+      message:
+        "What time should the archiver run each day? (24h format: HH:MM)",
+      validate: (input) => {
+        return /^([01]?\d|2[0-3]):[0-5]\d$/.test(input)
+          ? true
+          : "Enter a valid time in HH:MM (24-hour) format.";
+      },
+      default: "03:00",
+    },
   ]);
 
-  settings.cfg.downloadDirectory = answers.downloadDirectory.trim().replace(/\s/g, "");
+  settings.cfg.downloadDirectory = util.trimInput(answers.downloadDirectory);
+
+  settings.cfg.runTime = answers.runTime;
+  settings.saveConfig();
 };
 
-init();
+async function startup() {
+  const configPath = path.join(settings.cfg.workingDir, "config.json");
+
+  if (fs.existsSync(configPath)) {
+    settings.loadConfig();
+    await startSession();
+  } else {
+    await init();
+  }
+}
+
+startup()
