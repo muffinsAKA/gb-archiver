@@ -58,7 +58,7 @@ export const upload = async (csvPath) => {
 
   proc.on("close", (code) => {
     if (code === 0) {
-      disc("✅ Upload complete.");
+      disc("✅ All uploads complete.");
     } else {
       disc(`❌ Upload failed with code ${code}`);
     }
