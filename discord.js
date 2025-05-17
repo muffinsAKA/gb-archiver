@@ -1,10 +1,7 @@
 import * as settings from './config.js'
 
-const testToken = "REMOVED";
-const testChannel = "1079974532166733865";
-
 const getHeaders = () => ({
-  "Authorization": `Bot ${testToken}`,
+  "Authorization": `Bot ${settings.cfg.discord.token}`,
   "Content-Type": "application/json"
 });
 
@@ -12,7 +9,7 @@ export const disc = async (message) => {
   if (!settings.cfg.adminMode) return
 
   try {
-    const res = await fetch(`https://discord.com/api/v9/channels/${testChannel}/messages`, {
+    const res = await fetch(`https://discord.com/api/v9/channels/${settings.cfg.discord.channel}/messages`, {
       method: "POST",
       headers: getHeaders(),
       body: JSON.stringify({ content: message })
@@ -34,7 +31,7 @@ export const disc = async (message) => {
 
 export const editDisc = async (messageId, newMessage) => {
   try {
-    const res = await fetch(`https://discord.com/api/v9/channels/${testChannel}/messages/${messageId}`, {
+    const res = await fetch(`https://discord.com/api/v9/channels/${settings.cfg.discord.channel}/messages/${messageId}`, {
       method: "PATCH",
       headers: getHeaders(),
       body: JSON.stringify({ content: newMessage })
