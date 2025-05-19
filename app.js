@@ -8,6 +8,7 @@ import { VideoItem } from './config.js'
 import { writeCsv } from './csvWriter.js'
 import { disc } from './discord.js'
 import * as util from './util.js'
+import { upload } from './ia.js'
 import inquirer from 'inquirer'
 
 const spinner = ora('Getting latest API data').start()
