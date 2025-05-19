@@ -107,8 +107,11 @@ const startSession = async () => {
   await disc('🧹 Cleaned download folder', 'bash')
 
   const nextRun = util.getNextRunTimeInMs(settings.cfg.runTime)
-  spinner.info(`Next session scheduled in ${nextRun}ms`)
-  await disc(`⏱️ Next session scheduled in ${nextRun}ms`, 'yaml')
+  const now = new Date()
+  const nextTime = new Date(now.getTime() + nextRun)
+
+  spinner.info(`Next session scheduled in ${nextTime}`)
+  await disc(`⏱️ Next session scheduled in ${nextTime}`, 'yaml')
 
   setTimeout(async () => {
     await startSession()
