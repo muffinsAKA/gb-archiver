@@ -43,14 +43,19 @@ const startSession = async () => {
   if (apiData?.results?.length) {
     try {
       spinner.info(`${apiData.results.length} shows found`)
-      await disc(`${apiData.results.length} shows found`)
+      await disc(`${apiData.results.length} shows found:`)
+
       spinner.start('Sorting videos')
       const newVideos = await sortNewVideos(apiData.results)
+
+      for (const newVideo of newVideos) {
+        await disc(newVideo.filename)
+      }
+
       spinner.succeed()
       if (settings.cfg.adminMode) {
         spinner.start('Creating CSV')
         await writeCsv(newVideos, date)
-        await disc('CSV Data created:')
         spinner.succeed()
       }
       spinner.info('Downloading videos...')
