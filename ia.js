@@ -11,7 +11,10 @@ let lastReportedPercent = 0
 
 export const upload = async (csvPath) => {
   await disc('Uploading to Archive.org')
-  const proc = spawn('ia', ['upload', `--spreadsheet=${csvPath}`])
+  const proc = spawn('./archiver-venv/bin/ia', [
+    'upload',
+    `--spreadsheet=${csvPath}`
+  ])
 
   proc.stderr.on('data', (data) => {
     process.stderr.write(data)
