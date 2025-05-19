@@ -53,10 +53,12 @@ const startSession = async () => {
         await disc(newVideo.filename)
       }
 
+      let csvPath
+
       spinner.succeed()
       if (settings.cfg.adminMode) {
         spinner.start('Creating CSV')
-        await writeCsv(newVideos, date)
+        csvPath = await writeCsv(newVideos, date)
         spinner.succeed()
       }
       spinner.info('Downloading videos...')
@@ -84,7 +86,7 @@ const startSession = async () => {
       await disc(`✅ All downloads finished`)
 
       if (settings.cfg.adminMode) {
-        upload(path.join(settings.cfg.downloadDirectory, './upload.csv'))
+        upload(csvPath)
       }
     } catch (error) {
       console.error(error)
