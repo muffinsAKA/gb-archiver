@@ -94,7 +94,7 @@ export class VideoItem {
   toCsvRow() {
     return {
       identifier: this.createIdentifier(),
-      file: path.join(cfg.downloadDirectory, this.filepath),
+      file: this.filepath,
       title: this.name,
       description: this.deck,
       'subject[0]': 'Giant Bomb',
