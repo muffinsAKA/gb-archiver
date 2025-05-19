@@ -1,4 +1,4 @@
-import settings from './config.js'
+import * as settings from './config.js'
 
 const wrapMessage = (content, type) => {
   if (!type) return content
