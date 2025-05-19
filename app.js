@@ -100,7 +100,7 @@ const startSession = async () => {
 
   spinner.info('Cleaning up download folder')
   await util.emptyFolder(settings.cfg.downloadDirectory)
-  spinner.succeed()
+  spinner.succeed('Folder cleaned')
 
   spinner.info(
     `Next session scheduled for ${util.getNextRunTimeInMs(
