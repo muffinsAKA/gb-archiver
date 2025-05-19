@@ -108,7 +108,7 @@ const startSession = async () => {
     )}`
   )
 
-  spinner.setTimeout(async () => {
+  setTimeout(async () => {
     await startSession()
   }, util.getNextRunTimeInMs(settings.cfg.runTime))
 }
