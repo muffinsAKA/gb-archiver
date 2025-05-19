@@ -97,6 +97,20 @@ const startSession = async () => {
     spinner.info('No shows found for given date')
     await disc('No shows found. Skipping.')
   }
+
+  spinner.info('Cleaning up download folder')
+  await util.emptyFolder(settings.cfg.downloadDirectory)
+  spinner.succeed()
+
+  spinner.info(
+    `Next session scheduled for ${util.getNextRunTimeInMs(
+      settings.cfg.runTime
+    )}`
+  )
+
+  spinner.setTimeout(async () => {
+    await startSession()
+  }, util.getNextRunTimeInMs(settings.cfg.runTime))
 }
 
 async function sortNewVideos(results) {
@@ -223,6 +237,7 @@ async function startup() {
     await startSession()
   } else {
     await init()
+    await startSession()
   }
 }
 

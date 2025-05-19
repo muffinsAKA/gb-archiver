@@ -1,3 +1,6 @@
+import fs from 'fs'
+import path from 'path'
+
 export const trimInput = (input) => {
   return input.trim().replace(/\s/g, '')
 }
@@ -8,5 +11,29 @@ export const getApiDate = () => {
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
-  return '2024-12-10'
+  return `${year}-${month}-${day}`
+}
+
+export const emptyFolder = async (folder) => {
+  fs.readdirSync(folder).forEach((file) => {
+    const filePath = path.join(folder, file)
+    if (fs.lstatSync(filePath).isDirectory()) {
+      fs.rmSync(filePath, { recursive: true, force: true })
+    } else {
+      fs.unlinkSync(filePath)
+    }
+  })
+}
+
+export const getNextRunTimeInMs = (runTime) => {
+  const [hour, minute] = runTime.split(':').map(Number)
+
+  const nextRunTime = new Date()
+  nextRunTime.setHours(hour, minute, 0, 0)
+
+  if (nextRunTime < new Date()) {
+    nextRunTime.setDate(nextRunTime.getDate() + 1)
+  }
+
+  return nextRunTime.getTime() - Date.now()
 }
