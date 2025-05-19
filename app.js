@@ -25,45 +25,49 @@ const multiBar = new cliProgress.MultiBar(
 const startSession = async () => {
   if (!fs.existsSync(settings.cfg.downloadDirectory))
     fs.mkdirSync(settings.cfg.downloadDirectory)
+
   const date = util.getApiDate()
+
   spinner.info(`Getting API for ${date}`)
-  await disc(`Getting API for ${date}`)
+  await disc(`📡 Getting API for ${date}`, 'fix')
+
   let apiData
 
   try {
     apiData = await downloader.getApi(date)
     spinner.succeed()
-    await disc('✅ API download succesful')
+    await disc('✅ API download successful', 'diff')
   } catch (error) {
     spinner.fail('API download failed')
-    await disc('API download failed, will retry later. ')
+    await disc('❌ API download failed, will retry later.', 'diff')
     console.log(error)
     settings.cfg.retries.push({ date: date, retries: 3 })
   }
 
   if (apiData?.results?.length) {
     try {
-      spinner.info(`${apiData.results.length} shows found`)
-      await disc(`${apiData.results.length} shows found:`)
+      const count = apiData.results.length
+      spinner.info(`${count} shows found`)
+      await disc(`🎬 ${count} shows found`, 'yaml')
 
       spinner.start('Sorting videos')
       const newVideos = await sortNewVideos(apiData.results)
 
-      for (const newVideo of newVideos) {
-        await disc(newVideo.filename)
-      }
+      await disc(newVideos.map((v) => `• ${v.filename}`).join('\n'), 'yaml')
 
       let csvPath
-
       spinner.succeed()
+
       if (settings.cfg.adminMode) {
         spinner.start('Creating CSV')
         csvPath = await writeCsv(newVideos, date)
         spinner.succeed()
       }
+
       spinner.info('Downloading videos...')
-      await disc(`Downloading ${apiData.results.length} new videos `)
+      await disc(`📥 Downloading ${count} videos`, 'fix')
       spinner.stop()
+
       const results = await Promise.allSettled(
         newVideos.map((video) => downloader.downloadVideo(video, multiBar))
       )
@@ -72,18 +76,17 @@ const startSession = async () => {
 
       for (const [idx, result] of results.entries()) {
         const video = newVideos[idx]
-
         if (result.status === 'fulfilled') {
           console.log(`✅ Downloaded: ${video.filename}`)
-          await disc(`✅ Downloaded: ${video.filename}`)
+          await disc(`+ ✅ Downloaded: ${video.filename}`, 'diff')
         } else {
           console.error(`❌ Failed: ${video.filename}`, result.reason)
-          await disc(`❌ Failed: ${video.filename}`, result.reason)
+          await disc(`- ❌ Failed: ${video.filename}`, 'diff')
         }
       }
 
       spinner.succeed('All downloads finished')
-      await disc(`✅ All downloads finished`)
+      await disc('✅ All downloads finished', 'diff')
 
       if (settings.cfg.adminMode) {
         upload(csvPath)
@@ -91,26 +94,25 @@ const startSession = async () => {
     } catch (error) {
       console.error(error)
       spinner.fail('Unexpected error during session')
-      await disc(`Unexpected error during session: ${error}`)
+      await disc(`❌ Unexpected error during session:\n${error}`, 'diff')
     }
   } else {
     spinner.info('No shows found for given date')
-    await disc('No shows found. Skipping.')
+    await disc('ℹ️ No shows found. Skipping.', 'fix')
   }
 
   spinner.info('Cleaning up download folder')
   await util.emptyFolder(settings.cfg.downloadDirectory)
   spinner.succeed('Folder cleaned')
+  await disc('🧹 Cleaned download folder', 'bash')
 
-  spinner.info(
-    `Next session scheduled for ${util.getNextRunTimeInMs(
-      settings.cfg.runTime
-    )}`
-  )
+  const nextRun = util.getNextRunTimeInMs(settings.cfg.runTime)
+  spinner.info(`Next session scheduled in ${nextRun}ms`)
+  await disc(`⏱️ Next session scheduled in ${nextRun}ms`, 'yaml')
 
   setTimeout(async () => {
     await startSession()
-  }, util.getNextRunTimeInMs(settings.cfg.runTime))
+  }, nextRun)
 }
 
 async function sortNewVideos(results) {

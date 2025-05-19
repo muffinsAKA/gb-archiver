@@ -1,12 +1,14 @@
-import * as settings from './config.js'
+import settings from './config.js'
 
-const getHeaders = () => ({
-  Authorization: `Bot ${settings.cfg.discord.token}`,
-  'Content-Type': 'application/json'
-})
+const wrapMessage = (content, type) => {
+  if (!type) return content
+  return `\`\`\`${type}\n${content}\n\`\`\``
+}
 
-export const disc = async (message) => {
+export const disc = async (message, type = null) => {
   if (!settings.cfg.adminMode) return
+
+  const content = wrapMessage(message, type)
 
   try {
     const res = await fetch(
@@ -14,7 +16,7 @@ export const disc = async (message) => {
       {
         method: 'POST',
         headers: getHeaders(),
-        body: JSON.stringify({ content: message })
+        body: JSON.stringify({ content })
       }
     )
 
@@ -32,14 +34,16 @@ export const disc = async (message) => {
   }
 }
 
-export const editDisc = async (messageId, newMessage) => {
+export const editDisc = async (messageId, newMessage, type = null) => {
+  const content = wrapMessage(newMessage, type)
+
   try {
     const res = await fetch(
       `https://discord.com/api/v9/channels/${settings.cfg.discord.channel}/messages/${messageId}`,
       {
         method: 'PATCH',
         headers: getHeaders(),
-        body: JSON.stringify({ content: newMessage })
+        body: JSON.stringify({ content })
       }
     )
 
@@ -51,3 +55,8 @@ export const editDisc = async (messageId, newMessage) => {
     console.error('Edit fetch error:', err)
   }
 }
+
+const getHeaders = () => ({
+  Authorization: `Bot ${settings.cfg.discord.token}`,
+  'Content-Type': 'application/json'
+})

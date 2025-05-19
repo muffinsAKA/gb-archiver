@@ -10,7 +10,8 @@ const UPDATE_THRESHOLD = 1
 let lastReportedPercent = 0
 
 export const upload = async (csvPath) => {
-  await disc('Uploading to Archive.org')
+  await disc('📤 Uploading to Archive.org', 'fix')
+
   const proc = spawn('./archiver-venv/bin/ia', [
     'upload',
     `--spreadsheet=${csvPath}`
@@ -30,11 +31,11 @@ export const upload = async (csvPath) => {
           currentFileProgress = -1
           lastReportedPercent = 0
 
-          disc(`📤 Uploading: **${currentFilename}**`).then((id) => {
+          disc(`📦 Uploading: ${currentFilename}`, 'bash').then((id) => {
             uploadStartMsgId = id
           })
 
-          disc(`🔄 **${currentFilename}** — 0%`).then((id) => {
+          disc(`🔄 ${currentFilename} — 0%`, 'yaml').then((id) => {
             uploadProgressMsgId = id
           })
         }
@@ -48,7 +49,8 @@ export const upload = async (csvPath) => {
             lastReportedPercent = percent
             editDisc(
               uploadProgressMsgId,
-              `🔄 **${currentFilename}** — ${percent}%`
+              `🔄 ${currentFilename} — ${percent}%`,
+              'yaml'
             )
           }
         }
@@ -58,9 +60,9 @@ export const upload = async (csvPath) => {
 
   proc.on('close', (code) => {
     if (code === 0) {
-      disc('✅ All uploads complete.')
+      disc('✅ All uploads complete.', 'diff')
     } else {
-      disc(`❌ Upload failed with code ${code}`)
+      disc(`❌ Upload failed with code ${code}`, 'diff')
     }
   })
 }
