@@ -110,8 +110,8 @@ const startSession = async () => {
   const now = new Date()
   const nextTime = new Date(now.getTime() + nextRun)
 
-  spinner.info(`Next session scheduled in ${nextTime}`)
-  await disc(`⏱️ Next session scheduled in ${nextTime}`, 'yaml')
+  spinner.info(`Next archive session: ${nextTime}`)
+  await disc(`⏱️ Next archive session: ${nextTime}`, 'yaml')
 
   setTimeout(async () => {
     await startSession()
