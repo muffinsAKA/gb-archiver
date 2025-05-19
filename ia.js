@@ -6,7 +6,7 @@ let uploadProgressMsgId = null
 let currentFilename = ''
 let currentFileProgress = 0
 
-const UPDATE_THRESHOLD = 4
+const UPDATE_THRESHOLD = 1
 let lastReportedPercent = 0
 
 export const upload = async (csvPath) => {
