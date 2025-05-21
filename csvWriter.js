@@ -8,7 +8,11 @@ import * as settings from './config.js'
 export async function writeCsv(videoItems) {
   const rows = videoItems.map((v) => v.toCsvRow())
 
-  const csvPath = path.join(settings.cfg.downloadDirectory, 'upload.csv')
+  const csvPath = path.join(
+    process.cwd(),
+    settings.cfg.downloadDirectory,
+    'upload.csv'
+  )
 
   const csvWriter = createObjectCsvWriter({
     path: csvPath,
