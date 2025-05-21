@@ -89,7 +89,8 @@ const startSession = async () => {
       await disc('✅ All downloads finished', 'diff')
 
       if (settings.cfg.adminMode) {
-        upload(csvPath)
+        console.log(csvPath)
+        await upload(csvPath)
       }
     } catch (error) {
       console.error(error)

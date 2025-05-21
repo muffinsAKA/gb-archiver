@@ -5,7 +5,7 @@ import path from 'path'
 import { createObjectCsvWriter } from 'csv-writer'
 import * as settings from './config.js'
 
-export async function writeCsv(videoItems, dateStr) {
+export async function writeCsv(videoItems) {
   const rows = videoItems.map((v) => v.toCsvRow())
 
   const csvPath = path.join(settings.cfg.downloadDirectory, 'upload.csv')
