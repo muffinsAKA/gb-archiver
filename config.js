@@ -72,6 +72,7 @@ export class VideoItem {
 
     this.filename = base + suffix
     this.filepath = path.join(
+      process.cwd(),
       cfg.downloadDirectory,
       this.videoShow || '',
       this.filename

@@ -60,7 +60,11 @@ const startSession = async () => {
 
       if (settings.cfg.adminMode) {
         spinner.start('Creating CSV')
-        csvPath = await writeCsv(newVideos, date)
+        try {
+          csvPath = await writeCsv(newVideos)
+        } catch (error) {
+          console.error(error)
+        }
         spinner.succeed()
       }
 
