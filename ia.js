@@ -32,13 +32,11 @@ export const upload = async (csvPath) => {
             currentFileProgress = -1
             lastReportedPercent = 0
 
-            disc(`📦 Uploading: ${currentFilename}`, 'bash').then((id) => {
-              uploadStartMsgId = id
-            })
-
-            disc(`🔄 ${currentFilename} — 0%`, 'yaml').then((id) => {
-              uploadProgressMsgId = id
-            })
+        ;(async () => {
+          uploadStartMsgId = await disc(`📦 Uploading: ${currentFilename}`, 'bash')
+          uploadProgressMsgId = await disc(`🔄 ${currentFilename} — 0%`, 'yaml')
+        })()
+      }
           }
 
           if (percentMatch) {
