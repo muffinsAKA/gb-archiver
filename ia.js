@@ -12,57 +12,65 @@ let lastReportedPercent = 0
 export const upload = async (csvPath) => {
   await disc('📤 Uploading to Archive.org', 'fix')
 
-  const proc = spawn('./archiver-venv/bin/ia', [
-    'upload',
-    `--spreadsheet=${csvPath}`
-  ])
+  return new Promise((resolve, reject) => {
+    const proc = spawn('./archiver-venv/bin/ia', [
+      'upload',
+      `--spreadsheet=${csvPath}`
+    ])
 
-  proc.stderr.on('data', (data) => {
-    process.stderr.write(data)
+    proc.stderr.on('data', (data) => {
+      process.stderr.write(data)
 
-    const lines = data.toString().split(/\r/)
-    for (const line of lines) {
-      if (line.trim().startsWith('uploading ')) {
-        const fileMatch = line.match(/^\s*uploading (.*?):/)
-        const percentMatch = line.match(/:\s+(\d+)%\|/)
+      const lines = data.toString().split(/\r/)
+      for (const line of lines) {
+        if (line.trim().startsWith('uploading ')) {
+          const fileMatch = line.match(/^\s*uploading (.*?):/)
+          const percentMatch = line.match(/:\s+(\d+)%\|/)
 
-        if (fileMatch && fileMatch[1] !== currentFilename) {
-          currentFilename = fileMatch[1]
-          currentFileProgress = -1
-          lastReportedPercent = 0
+          if (fileMatch && fileMatch[1] !== currentFilename) {
+            currentFilename = fileMatch[1]
+            currentFileProgress = -1
+            lastReportedPercent = 0
 
-          disc(`📦 Uploading: ${currentFilename}`, 'bash').then((id) => {
-            uploadStartMsgId = id
-          })
+            disc(`📦 Uploading: ${currentFilename}`, 'bash').then((id) => {
+              uploadStartMsgId = id
+            })
 
-          disc(`🔄 ${currentFilename} — 0%`, 'yaml').then((id) => {
-            uploadProgressMsgId = id
-          })
-        }
+            disc(`🔄 ${currentFilename} — 0%`, 'yaml').then((id) => {
+              uploadProgressMsgId = id
+            })
+          }
 
-        if (percentMatch) {
-          const percent = parseInt(percentMatch[1], 10)
-          if (
-            percent >= lastReportedPercent + UPDATE_THRESHOLD &&
-            uploadProgressMsgId
-          ) {
-            lastReportedPercent = percent
-            editDisc(
-              uploadProgressMsgId,
-              `🔄 ${currentFilename} — ${percent}%`,
-              'yaml'
-            )
+          if (percentMatch) {
+            const percent = parseInt(percentMatch[1], 10)
+            if (
+              percent >= lastReportedPercent + UPDATE_THRESHOLD &&
+              uploadProgressMsgId
+            ) {
+              lastReportedPercent = percent
+              editDisc(
+                uploadProgressMsgId,
+                `🔄 ${currentFilename} — ${percent}%`,
+                'yaml'
+              )
+            }
           }
         }
       }
-    }
-  })
+    })
 
-  proc.on('close', (code) => {
-    if (code === 0) {
-      disc('✅ All uploads complete.', 'diff')
-    } else {
-      disc(`❌ Upload failed with code ${code}`, 'diff')
-    }
+    proc.on('close', (code) => {
+      if (code === 0) {
+        disc('✅ All uploads complete.', 'diff')
+        resolve()
+      } else {
+        disc(`❌ Upload failed with code ${code}`, 'diff')
+        reject(new Error(`Upload failed with code ${code}`))
+      }
+    })
+
+    proc.on('error', (err) => {
+      reject(err)
+    })
   })
 }
