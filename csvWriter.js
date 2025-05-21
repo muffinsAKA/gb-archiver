@@ -13,7 +13,7 @@ export async function writeCsv(videoItems) {
     settings.cfg.downloadDirectory,
     'upload.csv'
   )
-
+  console.log('Writing CSV to:', csvPath)
   const csvWriter = createObjectCsvWriter({
     path: csvPath,
     header: Object.keys(rows[0]).map((key) => ({ id: key, title: key }))
