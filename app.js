@@ -49,10 +49,10 @@ const startSession = async () => {
       const count = apiData.results.length
       spinner.info(`${count} shows found`)
       await disc(`🎬 ${count} shows found`, 'yaml')
-
+      console.log(apiData.results)
       spinner.start('Sorting videos')
       const newVideos = await sortNewVideos(apiData.results)
-
+      console.log(newVideos)
       await disc(newVideos.map((v) => `• ${v.filename}`).join('\n'), 'yaml')
 
       let csvPath
