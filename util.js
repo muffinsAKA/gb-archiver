@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import inquirer from 'inquirer'
 
 export const trimInput = (input) => {
   return input.trim().replace(/\s/g, '')
