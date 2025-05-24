@@ -248,7 +248,7 @@ async function startup() {
 
   if (fs.existsSync(configPath)) {
     settings.loadConfig()
-    const runType = await promptWithTimeout(
+    const runType = await util.promptWithTimeout(
       {
         type: 'confirm',
         name: 'auto',
