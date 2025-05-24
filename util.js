@@ -5,6 +5,11 @@ export const trimInput = (input) => {
   return input.trim().replace(/\s/g, '')
 }
 
+export const convertDate = (input) => {
+  const [month, day, year] = input.split('-')
+  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`
+}
+
 export const getApiDate = () => {
   const date = new Date()
   date.setDate(date.getDate() - 2)
@@ -36,4 +41,16 @@ export const getNextRunTimeInMs = (runTime) => {
   }
 
   return nextRunTime.getTime() - Date.now()
+}
+export function promptWithTimeout(
+  promptConfig,
+  timeout = 10000,
+  defaultValue = false
+) {
+  return Promise.race([
+    inquirer.prompt([promptConfig]),
+    new Promise((resolve) =>
+      setTimeout(() => resolve({ [promptConfig.name]: defaultValue }), timeout)
+    )
+  ])
 }

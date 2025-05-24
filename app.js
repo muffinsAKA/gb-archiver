@@ -22,11 +22,13 @@ const multiBar = new cliProgress.MultiBar(
   cliProgress.Presets.shades_classic
 )
 
-const startSession = async () => {
+const startSession = async (specifiedDate) => {
   if (!fs.existsSync(settings.cfg.downloadDirectory))
     fs.mkdirSync(settings.cfg.downloadDirectory)
 
-  const date = util.getApiDate()
+  const date = specifiedDate
+    ? util.convertDate(specifiedDate)
+    : util.getApiDate()
 
   spinner.info(`Getting API for ${date}`)
   await disc(`📡 Getting API for ${date}`, 'fix')
@@ -111,16 +113,18 @@ const startSession = async () => {
   spinner.succeed('Folder cleaned')
   await disc('🧹 Cleaned download folder', 'bash')
 
-  const nextRun = util.getNextRunTimeInMs(settings.cfg.runTime)
-  const now = new Date()
-  const nextTime = new Date(now.getTime() + nextRun)
+  if (!specifiedDate) {
+    const nextRun = util.getNextRunTimeInMs(settings.cfg.runTime)
+    const now = new Date()
+    const nextTime = new Date(now.getTime() + nextRun)
 
-  spinner.info(`Next archive session: ${nextTime}`)
-  await disc(`⏱️ Next archive session: ${nextTime}`, 'yaml')
+    spinner.info(`Next archive session: ${nextTime}`)
+    await disc(`⏱️ Next archive session: ${nextTime}`, 'yaml')
 
-  setTimeout(async () => {
-    await startSession()
-  }, nextRun)
+    setTimeout(async () => {
+      await startSession()
+    }, nextRun)
+  }
 }
 
 async function sortNewVideos(results) {
@@ -244,10 +248,70 @@ async function startup() {
 
   if (fs.existsSync(configPath)) {
     settings.loadConfig()
-    await startSession()
+    const runType = await promptWithTimeout(
+      {
+        type: 'confirm',
+        name: 'auto',
+        message: 'Auto-mode? (Timeout in 10s)',
+        default: true
+      },
+      10000,
+      false
+    )
+
+    if (runType.auto) {
+      await startSession()
+    } else {
+      const specifiedDate = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'date',
+          message: 'Which date would you like to archive?',
+          validate: function (input) {
+            const dateRegex =
+              /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])-(19|20)\d{2}$/
+            return (
+              dateRegex.test(input) ||
+              'Please enter a date in MM-DD-YYYY format (e.g., 04-20-1969).'
+            )
+          }
+        }
+      ])
+
+      startSession(specifiedDate)
+    }
   } else {
     await init()
-    await startSession()
+    const runType = await inquirer.prompt([
+      {
+        type: 'confirrm',
+        name: 'auto',
+        message: 'Auto-mode?',
+        default: 'true'
+      }
+    ])
+
+    if (runType.auto) {
+      await startSession()
+    } else {
+      const specifiedDate = await inquirer.prompt([
+        {
+          type: 'input',
+          name: 'date',
+          message: 'Which date would you like to archive?',
+          validate: function (input) {
+            const dateRegex =
+              /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])-(19|20)\d{2}$/
+            return (
+              dateRegex.test(input) ||
+              'Please enter a date in MM-DD-YYYY format (e.g., 04-20-1969).'
+            )
+          }
+        }
+      ])
+
+      startSession(specifiedDate)
+    }
   }
 }
 
