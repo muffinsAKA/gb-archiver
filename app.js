@@ -278,7 +278,7 @@ async function startup() {
         }
       ])
 
-      startSession(specifiedDate)
+      startSession(specifiedDate.date)
     }
   } else {
     await init()
@@ -310,7 +310,7 @@ async function startup() {
         }
       ])
 
-      startSession(specifiedDate)
+      startSession(specifiedDate.date)
     }
   }
 }
