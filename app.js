@@ -256,7 +256,7 @@ async function startup() {
         default: true
       },
       10000,
-      false
+      true
     )
 
     if (runType.auto) {
