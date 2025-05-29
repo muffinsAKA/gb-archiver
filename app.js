@@ -245,6 +245,9 @@ const init = async () => {
 
 async function startup() {
   const configPath = path.join(settings.cfg.workingDir, 'config.json')
+  const nextRun = util.getNextRunTimeInMs(settings.cfg.runTime)
+  const now = new Date()
+  const nextTime = new Date(now.getTime() + nextRun)
 
   if (fs.existsSync(configPath)) {
     settings.loadConfig()
@@ -260,7 +263,9 @@ async function startup() {
     )
 
     if (runType.auto) {
-      await startSession()
+      setTimeout(async () => {
+        await startSession()
+      }, nextRun)
     } else {
       const specifiedDate = await inquirer.prompt([
         {
@@ -292,7 +297,9 @@ async function startup() {
     ])
 
     if (runType.auto) {
-      await startSession()
+      setTimeout(async () => {
+        await startSession()
+      }, nextRun)
     } else {
       const specifiedDate = await inquirer.prompt([
         {
