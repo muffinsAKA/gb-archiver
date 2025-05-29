@@ -263,6 +263,7 @@ async function startup() {
     )
 
     if (runType.auto) {
+      console.log(`Scheduled to run at: ${nextTime}`)
       setTimeout(async () => {
         await startSession()
       }, nextRun)
@@ -297,6 +298,7 @@ async function startup() {
     ])
 
     if (runType.auto) {
+      console.log(`Scheduled to run at: ${nextTime}`)
       setTimeout(async () => {
         await startSession()
       }, nextRun)
